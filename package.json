@@ -1,0 +1,26 @@
+{
+  "name": "clockd3js",
+  "version": "0.0.1",
+  "description": "Clock writen with d3js",
+  "main": "Clock.js",
+  "scripts": {
+    "test": "\"test\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SumarokovV/Clockd3js.git"
+  },
+  "keywords": [
+    "clock",
+    "d3js"
+  ],
+  "author": "Sumarokov.world",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SumarokovV/Clockd3js/issues"
+  },
+  "homepage": "https://github.com/SumarokovV/Clockd3js#readme",
+  "dependencies": {
+    "d3": "^5.16.0"
+  }
+}
