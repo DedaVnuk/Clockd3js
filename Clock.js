@@ -20,7 +20,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
   this.digit_clock_as_text = false;
 
 
-  const scaleDomain = function(date, row_type) {
+  const scaleDomain = (date, row_type) => {
     let start_of_time = new Date(date.getTime());
     let end_of_time = new Date(date.getTime());
 
@@ -38,7 +38,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
     return [start_of_time, end_of_time];
   }
 
-  const scaleRange = function(row_type) {
+  const scaleRange = row_type => {
     let multiplier = row_type === "hour" ? 4 : 2;
 
     return [0, multiplier * Math.PI];
@@ -50,7 +50,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
    * @param {string} row_type тип стрелки("hour", "minute", "second")
    * @return  {undefined}
    */
-  const drawRow = function(row_angle, row_type) {
+  const drawRow = (row_angle, row_type) => {
     this.clock.select(`path.${row_type}`).remove();
 
     const row_types = {
@@ -79,7 +79,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
    * @param {number} radius
    * @return  {undefined}
    */
-  const drawCircle = function(class_name, radius) {
+  const drawCircle = (class_name, radius) => {
     this.clock.append("circle")
       .classed(class_name, true)
       .attr("cx", this.width / 2)
@@ -94,7 +94,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
    * @param {string} type
    * @return  {undefined}
    */
-  const drawTicks = function(type) {
+  const drawTicks = type => {
     const tick_params = {
       hour: {angle: 30, stroke_width: "3px"},
       minute: {angle: 6, stroke_width: "1px"},
@@ -130,7 +130,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
    * покажет на часах цифровое отображение времени
    * @return  {Clock}
    */
-  this.showDigitTime = function() {
+  this.showDigitTime = () => {
     this.digit_clock_as_text = true;
 
     return this;
@@ -142,7 +142,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
    * @param {string} link url строка (при нажатии на текст - откроется в новой вкладке)
    * @return  {Clock}
    */
-  this.setText = function(text, link = "") {
+  this.setText = (text, link = "") => {
     this.clock_text = text;
     this.clock_link = link;
 
@@ -151,7 +151,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
     return this;
   }
 
-  this.draw = function() {
+  this.draw = () => {
     if(this.show_main_circle) {
       drawCircle("main-circle", this.radius);
     }
@@ -178,7 +178,6 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
 
     }, 1000)
 
-
   }
 
 
@@ -188,7 +187,7 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
    * @param {boolean} is_digit_clock
    * @return  {undefined}
    */
-  this.appendText = function(is_digit_clock) {
+  this.appendText = is_digit_clock => {
     var class_name = is_digit_clock ? "digit-clock" : "clock-link";
 
     this.clock.select(`.${class_name}`).remove();

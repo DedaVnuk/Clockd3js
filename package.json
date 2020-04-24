@@ -1,6 +1,6 @@
 {
   "name": "clockd3js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Clock writen with d3js",
   "main": "Clock.js",
   "scripts": {
@@ -12,9 +12,10 @@
   },
   "keywords": [
     "clock",
-    "d3js"
+    "d3js",
+    "d3"
   ],
-  "author": "Sumarokov.world",
+  "author": "sumarokov.world",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/SumarokovV/Clockd3js/issues"
