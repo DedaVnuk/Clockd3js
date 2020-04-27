@@ -19,6 +19,7 @@ clock.draw();
 clock
   .showDigitTime()
   .setText("It's your time!", "https://your-own-site")
+  .draw();
 
 ```
 
