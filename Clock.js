@@ -1,17 +1,25 @@
 const d3 = require("d3");
 
-exports.Clock = function(params = {root_element_id: "clock"}) {
+exports.Clock = function(params = {}) {
 
-  const _root_element_id = params.root_element_id || "clock";
+  const _root_element_id = params.parent_id || "clock";
 
   const _root_element = d3.select(`#${_root_element_id}`)
-  let _width = parseInt(_root_element.style("width")) || 200;
-  let _height = parseInt(_root_element.style("height")) || 200;
+
+  let _width = parseInt(_root_element.style("width")) || 300;
+  let _height = parseInt(_root_element.style("height")) || 300;
   let _radius = (_width > _height ? _height / 2 : _width / 2) - 5;
 
   let _center_point_radius = 7;
 
-  let _show_main_circle = params.show_main_circle || false;
+	// определяет будет ли нарисован очерчивающий круг циферблата
+  let _show_main_circle = params.show_main_circle !== false;
+
+	// определяет будут ли отображаться цифры
+	let _show_hours = params.show_hours !== false; 
+
+	// массив, определяющий, какие цифры отображать на часах (пустой массив значит, что все цифры будут показыны)
+	let _hours = params.hours || []; 
 
   const _clock = _root_element.append("svg")
 	  .attr("id", "clock-d3js")
@@ -94,6 +102,25 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
       .attr("fill", "none")
   }
 
+	/**
+	 * расчитывает внутренний радиус для tick'ов на часах
+	 * @param {number} index - номер по порядку
+	 * @param {string} type  - тип tick'а(hour|minute
+	 * @return {number}
+	 */
+	const calculateTickInnerRadius = (index, type) => {
+		let inner_radius = _radius;
+
+		if(type === "hour") {
+			// 12, 3, 6, 9 часов - линию делаем длиннее
+			inner_radius -= index % 3 === 0 ? 30 : 20;
+		} else {
+			inner_radius -= 10;
+		}
+
+		return inner_radius;
+	}
+
   /**
    * рисует линии, обозначающие часы, минуты, секунды (секундные совпадают с минутными)
    * @param {string} type
@@ -105,32 +132,48 @@ exports.Clock = function(params = {root_element_id: "clock"}) {
       minute: {angle: 6, stroke_width: "1px"},
     }
 
-    const ticks = d3.arc()
+    const arc = d3.arc()
       .outerRadius(_radius)
+			.innerRadius(({index}) => calculateTickInnerRadius(index, type))
+			.startAngle(tick => tick.startAngle)
+			.endAngle(tick => tick.startAngle)
 
-    _clock.selectAll(`${type}Tick`)
-      .data(d3.range(0, 360, tick_params[type].angle)).enter()
-      .append("path")
-      .attr("d", (angle, angle_index) => {
-        let inner_radius = _radius;
-
-        if(type === "hour") {
-          // 12, 3, 6, 9 часов - линию делаем длиннее
-          inner_radius -= angle_index % 3 === 0 ? 30 : 20;
-        } else {
-          inner_radius = _radius - 10;
-        }
-
-        let angle_in_rad = Math.PI * angle / 180
-
-        return ticks
-          .innerRadius(inner_radius)
-          .startAngle(angle_in_rad)
-          .endAngle(angle_in_rad)()
-      })
+		const pie = d3.pie();
+		const ticks_g = _clock.selectAll(`${type}Tick`)
+      .data( pie(new Array(360/tick_params[type].angle).fill(tick_params[type].angle)) ).enter()
+			.append("g")
+		  .classed("g-tick", true)
       .attr("transform", `translate(${_width / 2}, ${_height / 2})`)
+
+		ticks_g.append("path")
+		  .classed(`${type}-tick`, true)
+		  .attr("d", arc)
       .attr("stroke", "black")
       .attr("stroke-width", tick_params[type].stroke_width)
+
+		if(type === "hour" && _show_hours) {
+			let transform_ratio = calculateTickInnerRadius(0, type)/_radius; // вычисляем коэффициент смещения цифр
+
+			ticks_g.append("text")
+				.attr("transform", tick => {
+					let point = arc.centroid(tick).map((coordinate, i) => {
+						coordinate += i === 0 ? 0 : 6; // смещаем цифры по y
+						return coordinate * transform_ratio;
+					})
+					return `translate(${point})`;
+				})
+			  .style("text-anchor", "middle")
+				.text(({index}) => {
+					let hour = index === 0 ? 12 : index;
+
+					if(_hours.length === 0) {
+						return hour;
+					} else {
+						return _hours.includes(hour) ? hour : "";
+					}
+				})
+		}
+
   }
 
   /**
