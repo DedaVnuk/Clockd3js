@@ -23,6 +23,13 @@ clock
 
 ```
 
+**Constructor params**
+Name|Type|Description|Default
+----|----|-----------|-------
+parent_id|String|parent div id|clock
+show_main_circle|Boolean|determines whether to show a clock circle|false
+show_hours|Boolean|determines whether to show hours|false
+hours|Array|hours display array|[ ]
 
 **Methods**
 
