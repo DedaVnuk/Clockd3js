@@ -13,6 +13,16 @@ import {Clock} from "clockd3js"
 ...
 
 const clock = new Clock();
+// or
+const clock = new Clock({
+  parent_id: "custom-clock",
+  show_main_circle: false,
+  show_hour: false
+});
+// or
+const clock = new Clock({
+  hours: [12, 3, 6, 9]
+});
 
 clock.draw();
 // or
