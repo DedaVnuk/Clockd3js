@@ -40,6 +40,7 @@ parent_id|String|parent div id|clock
 show_main_circle|Boolean|determines whether to show a clock circle|false
 show_hours|Boolean|determines whether to show hours|false
 hours|Array|hours display array|[ ]
+time_format|String|format of digital time ([d3 formats](https://github.com/d3/d3-time-format/tree/v2.2.3#locale_format))|%H:%M:%S
 
 **Methods**
 
