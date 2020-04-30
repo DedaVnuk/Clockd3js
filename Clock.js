@@ -12,20 +12,21 @@ exports.Clock = function(params = {}) {
 
   let _center_point_radius = 7;
 
-	// определяет будет ли нарисован очерчивающий круг циферблата
+  // определяет будет ли нарисован очерчивающий круг циферблата
   let _show_main_circle = params.show_main_circle !== false;
 
-	// определяет будут ли отображаться цифры
-	let _show_hours = params.show_hours !== false; 
+  // определяет будут ли отображаться цифры
+  let _show_hours = params.show_hours !== false; 
 
-	// массив, определяющий, какие цифры отображать на часах (пустой массив значит, что все цифры будут показыны)
-	let _hours = params.hours || []; 
+  const _default_hours = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  // массив, определяющий, какие цифры отображать на часах (пустой массив значит, что все цифры будут показыны)
+  let _hours = params.hours || _default_hours; 
 
   const _clock = _root_element.append("svg")
-	  .attr("id", "clock-d3js")
+    .attr("id", "clock-d3js")
     .attr("width", _width)
     .attr("height", _height)
-	  .append("g")
+    .append("g")
 
   let _digit_clock_as_text = false;
 
@@ -87,7 +88,7 @@ exports.Clock = function(params = {}) {
   }
 
   /**
-	 * добавляет круг в svg
+   * добавляет круг в svg
    * @param {string} class_name
    * @param {number} radius
    * @return  {void}
@@ -102,24 +103,24 @@ exports.Clock = function(params = {}) {
       .attr("fill", "none")
   }
 
-	/**
-	 * расчитывает внутренний радиус для tick'ов на часах
-	 * @param {number} index - номер по порядку
-	 * @param {string} type  - тип tick'а(hour|minute
-	 * @return {number}
-	 */
-	const calculateTickInnerRadius = (index, type) => {
-		let inner_radius = _radius;
+  /**
+   * расчитывает внутренний радиус для tick'ов на часах
+   * @param {number} index - номер по порядку
+   * @param {string} type  - тип tick'а(hour|minute
+   * @return {number}
+   */
+  const calculateTickInnerRadius = (index, type) => {
+    let inner_radius = _radius;
 
-		if(type === "hour") {
-			// 12, 3, 6, 9 часов - линию делаем длиннее
-			inner_radius -= index % 3 === 0 ? 30 : 20;
-		} else {
-			inner_radius -= 10;
-		}
+    if(type === "hour") {
+      // 12, 3, 6, 9 часов - линию делаем длиннее
+      inner_radius -= index % 3 === 0 ? 30 : 20;
+    } else {
+      inner_radius -= 10;
+    }
 
-		return inner_radius;
-	}
+    return inner_radius;
+  }
 
   /**
    * рисует линии, обозначающие часы, минуты, секунды (секундные совпадают с минутными)
@@ -134,45 +135,37 @@ exports.Clock = function(params = {}) {
 
     const arc = d3.arc()
       .outerRadius(_radius)
-			.innerRadius(({index}) => calculateTickInnerRadius(index, type))
-			.startAngle(tick => tick.startAngle)
-			.endAngle(tick => tick.startAngle)
+      .innerRadius(({index}) => calculateTickInnerRadius(index, type))
+      .startAngle(tick => tick.startAngle)
+      .endAngle(tick => tick.startAngle)
 
-		const pie = d3.pie();
-		const ticks_g = _clock.selectAll(`${type}Tick`)
+    const pie = d3.pie();
+    const ticks_g = _clock.selectAll(`${type}Tick`)
       .data( pie(new Array(360/tick_params[type].angle).fill(tick_params[type].angle)) ).enter()
-			.append("g")
-		  .classed("g-tick", true)
+      .append("g")
+      .classed("g-tick", true)
       .attr("transform", `translate(${_width / 2}, ${_height / 2})`)
 
-		ticks_g.append("path")
-		  .classed(`${type}-tick`, true)
-		  .attr("d", arc)
+    ticks_g.append("path")
+      .classed(`${type}-tick`, true)
+      .attr("d", arc)
       .attr("stroke", "black")
       .attr("stroke-width", tick_params[type].stroke_width)
 
-		if(type === "hour" && _show_hours) {
-			let transform_ratio = calculateTickInnerRadius(0, type)/_radius; // вычисляем коэффициент смещения цифр
+    if(type === "hour" && _show_hours) {
+      let transform_ratio = calculateTickInnerRadius(0, type)/_radius; // вычисляем коэффициент смещения цифр
 
-			ticks_g.append("text")
-				.attr("transform", tick => {
-					let point = arc.centroid(tick).map((coordinate, i) => {
-						coordinate += i === 0 ? 0 : 6; // смещаем цифры по y
-						return coordinate * transform_ratio;
-					})
-					return `translate(${point})`;
-				})
-			  .style("text-anchor", "middle")
-				.text(({index}) => {
-					let hour = index === 0 ? 12 : index;
-
-					if(_hours.length === 0) {
-						return hour;
-					} else {
-						return _hours.includes(hour) ? hour : "";
-					}
-				})
-		}
+      ticks_g.append("text")
+        .attr("transform", tick => {
+          let point = arc.centroid(tick).map((coordinate, i) => {
+            coordinate += i === 0 ? 0 : 6; // смещаем цифры по y
+            return coordinate * transform_ratio;
+          })
+          return `translate(${point})`;
+        })
+        .style("text-anchor", "middle")
+        .text(({index}) => _hours[index])
+    }
 
   }
 
@@ -180,8 +173,8 @@ exports.Clock = function(params = {}) {
    * добавляет текст в svg
    * (используется при добавлении цифровых часов и текста с ссылкой)
    * @param {string} text - текст, который будет добавлен на часы
-	 * @param {string} link - ссылка(href), для текста
-	 * @param {string} link_class - название класса добавляемого текста
+   * @param {string} link - ссылка(href), для текста
+   * @param {string} link_class - название класса добавляемого текста
    * @return  {void}
    */
   const appendText = (text, link = "", link_class = "digit-clock") => {
@@ -201,7 +194,7 @@ exports.Clock = function(params = {}) {
       .attr("cursor", "pointer")
   }
 
-	/**
+  /**
    * покажет на часах цифровое отображение времени
    * @return  {Clock}
    */
@@ -223,10 +216,10 @@ exports.Clock = function(params = {}) {
     return this;
   }
 
-	/**
-	 * отрисовывает часы
-	 * @return {void}
-	 */
+  /**
+   * отрисовывает часы
+   * @return {void}
+   */
   this.draw = () => {
     if(_show_main_circle) {
       drawCircle("main-circle", _radius);
@@ -239,7 +232,7 @@ exports.Clock = function(params = {}) {
       let date = new Date()
 
       if(_digit_clock_as_text) {
-				appendText(time(date));
+        appendText(time(date));
       }
 
       ["second", "minute", "hour"].forEach(row_type => {
