@@ -201,7 +201,22 @@ exports.Clock = function(params = {}) {
    * @return {void}
    */
   const drawTimeArc = function() {
-    _times.forEach(time => {
+
+    // показываем интервалы в зависимости от текущего часа (до/после полудня)
+    let times_filter = period => {
+
+      let current_hour = new Date().getHours();
+
+      let times_ours = [12, 23];
+      if(current_hour >= 0 && current_hour <= 11) {
+        times_ours = [0, 11];
+      }
+
+      let [period_hour] = period.start.split(":");
+      return period_hour >= times_ours[0] && period_hour <= times_ours[1];
+    }
+
+    _times.filter(times_filter).forEach(time => {
 
       const arc = d3.arc()
         .outerRadius(_radius+1)
