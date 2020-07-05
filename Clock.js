@@ -26,13 +26,14 @@ exports.Clock = function(params = {}) {
   let _times = params.times || [];
 
   const _clock = _root_element.append("svg")
-    .attr("id", "clock-d3js")
+    .classed("clock-d3js", true)
     .attr("width", _width)
     .attr("height", _height)
     .append("g")
 
   let _digit_clock_as_text = false;
 
+  let _dark_mode = params.dark_mode || false;
 
   const time = d3.timeFormat(params.time_format || "%H:%M:%S")
 
@@ -107,7 +108,7 @@ exports.Clock = function(params = {}) {
       .classed(`${row_type}`, true)
       .attr("d", row_path)
       .attr("transform", `translate(${_width / 2}, ${_height / 2})`)
-      .attr("stroke", row_type === "second" ? "red" : "black")
+      .attr("stroke", row_type === "second" ? "red" : (_dark_mode ? "white" : "black"))
       .attr("stroke-width", row_types[row_type].stroke_width)
 
   }
@@ -119,13 +120,27 @@ exports.Clock = function(params = {}) {
    * @return  {void}
    */
   const drawCircle = (class_name, radius) => {
+    let stroke = "black";
+    if(class_name === "main-circle" && !_show_main_circle) {
+      stroke = "transparent"
+    }
+
     _clock.append("circle")
       .classed(class_name, true)
       .attr("cx", _width / 2)
       .attr("cy", _height / 2)
       .attr("r", radius)
-      .attr("stroke", "black")
-      .attr("fill", "none")
+      .attr("stroke", _dark_mode ? "white" : stroke)
+      .attr("fill", _dark_mode ? "black" : "none")
+  }
+
+  const drawCircles = () => {
+    const circles = {
+      "main-circle": _radius,
+      "center-circle": _center_point_radius
+    };
+
+    Object.keys(circles).map(circle_class => drawCircle(circle_class, circles[circle_class]));
   }
 
   /**
@@ -176,7 +191,7 @@ exports.Clock = function(params = {}) {
     ticks_g.append("path")
       .classed(`${type}-tick`, true)
       .attr("d", arc)
-      .attr("stroke", "black")
+      .attr("stroke", _dark_mode ? "white" : "black")
       .attr("stroke-width", tick_params[type].stroke_width)
 
     if(type === "hour" && _show_hours) {
@@ -191,6 +206,7 @@ exports.Clock = function(params = {}) {
           return `translate(${point})`;
         })
         .style("text-anchor", "middle")
+        .attr("fill", _dark_mode ? "white" : "black")
         .text(({index}) => _hours[index])
     }
 
@@ -244,7 +260,7 @@ exports.Clock = function(params = {}) {
               .attr("y", _height/3)
               .attr("width", _radius)
               .attr("height", 25)
-              .attr("fill", "white")
+              .attr("fill", _dark_mode ? "black" : "white")
 
             info_g.append("text")
               .classed("time-info-text", true)
@@ -285,6 +301,7 @@ exports.Clock = function(params = {}) {
       .text(text)
       .attr("text-anchor", "middle")
       .attr("cursor", "pointer")
+      .attr("fill", _dark_mode ? "white" : "black")
   }
 
   /**
@@ -304,7 +321,11 @@ exports.Clock = function(params = {}) {
    * @return  {Clock}
    */
   this.setText = (text, link = "") => {
-    appendText(text, link, "clock-link");
+    // добавляем текст в последнюю очередь - нужно для dark_mode
+    // без timeout'a чёрный фон закрасит текст
+    setTimeout(() => {
+      appendText(text, link, "clock-link");
+    }, 0);
 
     return this;
   }
@@ -314,10 +335,7 @@ exports.Clock = function(params = {}) {
    * @return {void}
    */
   this.draw = () => {
-    if(_show_main_circle) {
-      drawCircle("main-circle", _radius);
-    }
-    drawCircle("center-circle", _center_point_radius);
+    drawCircles();
 
     ["hour", "minute"].map(time_type => drawTicks(time_type));
 
